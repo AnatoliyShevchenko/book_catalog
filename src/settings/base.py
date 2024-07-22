@@ -30,7 +30,7 @@ app.add_middleware(
 )
 engine = create_async_engine(url=DB_URL)
 session = async_sessionmaker(
-    bind=engine, expire_on_commit=True,
+    bind=engine, expire_on_commit=False,
 )
 POOL = aioredis.ConnectionPool.from_url(
     url="redis://127.0.0.1:6379/7", max_connections=20

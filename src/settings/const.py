@@ -1,6 +1,8 @@
 # Third-Party
 from decouple import config
 
+# JWT
+JWT_KEY = config("JWT_KEY")
 
 # Postgres
 DB_NAME = config("DB_NAME")

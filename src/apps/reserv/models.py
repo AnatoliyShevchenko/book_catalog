@@ -15,7 +15,7 @@ class BookReservation(Base):
     __tablename__ = "reserv"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("user.id"))
     book_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("books.id"))
     begin_date: Mapped[date] = mapped_column(Date, index=True)
     end_date: Mapped[date] = mapped_column(Date, index=True)
