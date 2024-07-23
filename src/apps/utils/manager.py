@@ -1,5 +1,5 @@
 # FastApi
-from fastapi import Depends, Response
+from fastapi import Depends, Response, Request
 
 # Third-Party
 from fastapi_users import (
@@ -9,10 +9,13 @@ from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi_users import exceptions
 from sqlalchemy.ext.asyncio import AsyncSession
 
+# Python
+from typing import Optional
+
 # Local
-from .models import User
-from .schemas import UserLogin
-from src.apps.abstract.utils import get_async_session
+from src.apps.models.users import User
+from src.apps.schemas.users import UserLogin
+from .session import get_async_session
 from src.settings.base import logger
 
 
@@ -28,7 +31,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     verification_token_secret = SECRET
 
     @staticmethod
-    async def on_after_register(user: User):
+    async def on_after_register(user: User, response: Response = None):
         logger.info(msg=f"User {user.id} has registered.")
 
     @staticmethod
@@ -52,9 +55,22 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
                 reason="Password should not contain e-mail"
             )
     
+    async def on_after_request_verify(
+        self, user: User, token: str, request: Optional[Request] = None
+    ):
+        print(f"Verification requested for user {user.id}. Verification token: {token}")
+    
     @staticmethod
-    async def on_after_login(user: User, response: Response = None):
+    async def on_after_login(
+        user: User, request: Optional[Request] = None, 
+        response: Response = None
+    ):
         logger.info(msg=f"User {user.id} logged in.")
+
+    async def on_after_verify(
+        self, user: User, request: Optional[Request] = None
+    ):
+        logger.info(msg=f"User {user.id} has been verified")
 
     async def authenticate(self, credentials: UserLogin) -> User | None:
         try:
@@ -63,13 +79,16 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             self.password_helper.hash(credentials.password)
             return None
 
-        verified, updated_password_hash = self.password_helper.verify_and_update(
-            credentials.password, user.hashed_password
-        )
+        verified, updated_password_hash = \
+            self.password_helper.verify_and_update(
+                credentials.password, user.hashed_password
+            )
         if not verified:
             return None
         if updated_password_hash is not None:
-            await self.user_db.update(user, {"hashed_password": updated_password_hash})
+            await self.user_db.update(
+                user, {"hashed_password": updated_password_hash}
+            )
 
         return user
 

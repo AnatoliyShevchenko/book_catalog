@@ -6,7 +6,7 @@ from sqlalchemy import BigInteger, ForeignKey, Date, Boolean
 from datetime import date
 
 # Local
-from src.apps.abstract.models import Base
+from .base import Base
 
 
 class BookReservation(Base):
@@ -15,8 +15,12 @@ class BookReservation(Base):
     __tablename__ = "reserv"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("user.id"))
-    book_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("books.id"))
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(
+        "user.id", ondelete="CASCADE", onupdate="CASCADE"
+    ))
+    book_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(
+        "books.id", ondelete="CASCADE", onupdate="CASCADE"
+    ))
     begin_date: Mapped[date] = mapped_column(Date, index=True)
     end_date: Mapped[date] = mapped_column(Date, index=True)
     on_hands: Mapped[bool] = mapped_column(Boolean, default=True)

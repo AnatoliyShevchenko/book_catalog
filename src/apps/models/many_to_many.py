@@ -1,12 +1,9 @@
 # SqlAlchemy
-from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import BigInteger, ForeignKey
 
-
-class Base(AsyncAttrs, DeclarativeBase):
-    """Base model as parent for other models."""
-    pass
+# Local
+from .base import Base
 
 
 class BookGenre(Base):
@@ -20,4 +17,3 @@ class BookGenre(Base):
     genre_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("genres.id"), primary_key=True
     )
-

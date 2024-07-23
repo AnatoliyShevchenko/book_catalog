@@ -9,13 +9,16 @@ from sqlalchemy.ext.asyncio import (
 
 # Third-Party
 from redis import asyncio as aioredis
+from celery import Celery
+from celery.schedules import crontab
+from faker import Faker
 
 # Python
 import logging
 from logging.config import dictConfig
 
 # Local
-from .const import DB_URL
+from .const import DB_URL, CELERY_BROKER_URL
 
 
 app = FastAPI(title="Book Catalog", debug=True)
@@ -32,11 +35,13 @@ engine = create_async_engine(url=DB_URL)
 session = async_sessionmaker(
     bind=engine, expire_on_commit=False,
 )
+
+fake = Faker()
+
 POOL = aioredis.ConnectionPool.from_url(
     url="redis://127.0.0.1:6379/7", max_connections=20
 )
 AIOREDIS = aioredis.Redis(connection_pool=POOL)
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -60,3 +65,13 @@ LOGGING = {
 }
 dictConfig(LOGGING)
 logger = logging.getLogger(__name__)
+
+celery = Celery("src.settings.base", broker=CELERY_BROKER_URL)
+celery.conf.beat_schedule = {
+    'every-day': {
+        'task': 'reset-reservations',
+        'schedule': crontab(hour=0, minute=0)
+    }
+}
+celery.autodiscover_tasks(packages=["src.apps.utils.tasks"])
+celery.conf.broker_connection_retry_on_startup = True

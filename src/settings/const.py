@@ -14,3 +14,6 @@ DB_URL = f"postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME
 
 # Local
 VOLUME = "./volume/"
+
+# Celery
+CELERY_BROKER_URL = config("CELERY_BROKER_URL")

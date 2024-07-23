@@ -22,6 +22,10 @@ class UserRead(schemas.BaseUser[int]):
     avatar: str
 
 
+class AllUsersSchema(BaseModel):
+    response: list[UserRead]
+
+
 class UserCreate(schemas.BaseUserCreate):
     email: EmailStr
     password: str
@@ -41,5 +45,5 @@ class UserUpdate(schemas.BaseUserUpdate):
     is_verified: Optional[bool] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    # avatar: Optional[str] = None
+    avatar: Optional[str] = None
     

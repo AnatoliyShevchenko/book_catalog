@@ -1,0 +1,53 @@
+services:
+
+  db:
+    image: postgres
+    container_name: book-catalog-postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - book-catalog-network
+
+  redis:
+    image: redis
+    container_name: book-catalog-redis
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      - book-catalog-network
+
+  web:
+    build: .
+    container_name: test_job_book_catalog
+    command: bash -c "alembic upgrade head && python script.py &&\
+      celery -A src.settings.base:celery worker --loglevel=info &\
+      celery -A src.settings.base:celery beat --loglevel=info & \
+      python main.py"
+    volumes:
+      - book_catalog_volume:/app/volume
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    environment:
+      - CELERY_BROKER_URL=redis://book-catalog-redis:6379/7
+    restart: always
+    networks:
+      - book-catalog-network
+
+volumes:
+  book_catalog_volume:
+
+networks:
+  book-catalog-network:
